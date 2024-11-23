@@ -1,0 +1,4 @@
+enum Race {
+  human,
+  goblin,
+}
