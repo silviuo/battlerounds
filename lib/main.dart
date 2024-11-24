@@ -1,9 +1,8 @@
 import 'package:flame/game.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:battlerounds/battlerounds_game.dart';
-
-import 'package:flutter/material.dart';
 
 import 'overlays/game_over.dart';
 import 'overlays/main_menu.dart';

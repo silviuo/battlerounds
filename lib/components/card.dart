@@ -11,9 +11,9 @@ import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/animation.dart';
 
-class Card extends PositionComponent
+class MinionCard extends PositionComponent
     with DragCallbacks, TapCallbacks, HasWorldReference<BattleroundsWorld> {
-  Card(Tier tier, Race race)
+  MinionCard(Tier tier, Race race)
       : _tier = tier,
         _race = race,
         super(
@@ -34,7 +34,7 @@ class Card extends PositionComponent
   bool _isDragging = false;
   Vector2 _whereCardStarted = Vector2(0, 0);
 
-  final List<Card> attachedCards = [];
+  final List<MinionCard> attachedCards = [];
 
   @override
   String toString() =>

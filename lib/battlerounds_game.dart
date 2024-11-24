@@ -1,8 +1,10 @@
 import 'dart:ui';
 
-import 'package:battlerounds/battlerounds_world.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
+
+import 'package:battlerounds/battlerounds_world.dart';
+import 'package:battlerounds/enums/game_stage.dart';
 
 class BattleroundsGame extends FlameGame<BattleroundsWorld> {
   static const double cardGap = 175.0;
@@ -18,6 +20,12 @@ class BattleroundsGame extends FlameGame<BattleroundsWorld> {
     const Radius.circular(cardRadius),
   );
 
+  GameStage currentStage = GameStage.mainMenu;
+
+  // TODO Move to player objects.
+  int player1Health = 30;
+  int player2Health = 30;
+
   /// Constant used to decide when a short drag is treated as a TapUp event.
   static const double dragTolerance = cardWidth / 5;
 
@@ -30,20 +38,44 @@ class BattleroundsGame extends FlameGame<BattleroundsWorld> {
     world = BattleroundsWorld();
   }
 
+  void startGame() {
+    currentStage = GameStage.recruitingPlayer1;
+    world.initializeRecruitingPhase(player: 1);
+    overlays.remove('MainMenu');
+  }
+
+  void playerReady() {
+    if (currentStage == GameStage.recruitingPlayer1) {
+      currentStage = GameStage.recruitingPlayer2;
+      world.initializeRecruitingPhase(player: 2);
+    } else if (currentStage == GameStage.recruitingPlayer2) {
+      currentStage = GameStage.combat;
+      world.initializeCombatPhase();
+      handleCombatPhase();
+    }
+  }
+
+  void handleCombatPhase() {
+    // Simulate combat and determine outcomes.
+    world.simulateCombat();
+    if (player1Health <= 0 || player2Health <= 0) {
+      currentStage = GameStage.gameOver;
+      overlays.add('GameOver');
+    } else {
+      currentStage = GameStage.recruitingPlayer1;
+      world.initializeRecruitingPhase(player: 1);
+    }
+  }
+
   void reset() {
-    // Game restart logic here.
+    player1Health = 30;
+    player2Health = 30;
+    currentStage = GameStage.mainMenu;
+    initializeGame();
+    overlays.add('MainMenu');
   }
 
   void endGame() {
     overlays.add('GameOver');
-  }
-
-  @override
-  void update(double dt) {
-    // Future.delayed(Duration(seconds: 3), () {
-    //   overlays.add('GameOver');
-    // });
-
-    super.update(dt);
   }
 }
