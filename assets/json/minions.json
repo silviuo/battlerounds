@@ -1,0 +1,142 @@
+[
+    {
+        "name": "Gobbler Greedgift",
+        "tier": 1,
+        "race": "goblin",
+        "baseAttack": 2,
+        "baseHealth": 3,
+        "basePowers": [
+            "DivineShieldPower"
+        ],
+        "basePowerDescriptions": [
+            "Divine Shield: The first time a Shielded minion takes damage, ignore it."
+        ],
+        "spritePath": "assets/images/minions/gobbler_greedgift.png"
+    },
+    {
+        "name": "Sludge the Stocking-Snatcher",
+        "tier": 1,
+        "race": "goblin",
+        "baseAttack": 3,
+        "baseHealth": 4,
+        "basePowers": [
+            "BattlecryPower"
+        ],
+        "basePowerDescriptions": [
+            "Battlecry: Deal 2 damage to an enemy minion."
+        ],
+        "spritePath": "assets/images/minions/sludge_stocking-snatcher.png"
+    },
+    {
+        "name": "Pukey Pineclaw",
+        "tier": 2,
+        "race": "goblin",
+        "baseAttack": 4,
+        "baseHealth": 5,
+        "basePowers": [
+            "RebornPower"
+        ],
+        "basePowerDescriptions": [
+            "Reborn: This minion returns to life with 1 Health after it dies."
+        ],
+        "spritePath": "assets/images/minions/pukey_pineclaw.png"
+    },
+    {
+        "name": "Grumble Gravygnaw",
+        "tier": 2,
+        "race": "goblin",
+        "baseAttack": 5,
+        "baseHealth": 6,
+        "basePowers": [
+            "DeathrattlePower"
+        ],
+        "basePowerDescriptions": [
+            "Deathrattle: Deal 3 damage to a random enemy minion."
+        ],
+        "spritePath": "assets/images/minions/grumble_gravygnaw.png"
+    },
+    {
+        "name": "Grinchy Grouchsnatch",
+        "tier": 3,
+        "race": "goblin",
+        "baseAttack": 6,
+        "baseHealth": 7,
+        "basePowers": [
+            "TauntPower"
+        ],
+        "basePowerDescriptions": [
+            "Taunt: Enemies must attack this minion first."
+        ],
+        "spritePath": "assets/images/minions/grinchy_grouchsnatch.png"
+    },
+    {
+        "name": "Kris Krinklewink",
+        "tier": 1,
+        "race": "human",
+        "baseAttack": 2,
+        "baseHealth": 3,
+        "basePowers": [
+            "DivineShieldPower"
+        ],
+        "basePowerDescriptions": [
+            "Divine Shield: The first time a Shielded minion takes damage, ignore it."
+        ],
+        "spritePath": "assets/images/minions/kris_krinklewink.png"
+    },
+    {
+        "name": "Holly Hugsalot",
+        "tier": 2,
+        "race": "human",
+        "baseAttack": 4,
+        "baseHealth": 5,
+        "basePowers": [
+            "RebornPower"
+        ],
+        "basePowerDescriptions": [
+            "Reborn: This minion returns to life with 1 Health after it dies."
+        ],
+        "spritePath": "assets/images/minions/holly_hugsalot.png"
+    },
+    {
+        "name": "Ebenezer Snowsnatch",
+        "tier": 3,
+        "race": "human",
+        "baseAttack": 5,
+        "baseHealth": 6,
+        "basePowers": [
+            "BattlecryPower"
+        ],
+        "basePowerDescriptions": [
+            "Battlecry: Deal 3 damage to a random enemy minion."
+        ],
+        "spritePath": "assets/images/minions/ebenezer_snowsnatch.png"
+    },
+    {
+        "name": "Peppermint Prancer",
+        "tier": 4,
+        "race": "human",
+        "baseAttack": 6,
+        "baseHealth": 7,
+        "basePowers": [
+            "TauntPower"
+        ],
+        "basePowerDescriptions": [
+            "Taunt: Enemies must attack this minion first."
+        ],
+        "spritePath": "assets/images/minions/peppermint_prancer.png"
+    },
+    {
+        "name": "Sugarplum Sprinklewood",
+        "tier": 5,
+        "race": "human",
+        "baseAttack": 7,
+        "baseHealth": 9,
+        "basePowers": [
+            "DeathrattlePower"
+        ],
+        "basePowerDescriptions": [
+            "Deathrattle: Restore 5 Health to a random friendly minion."
+        ],
+        "spritePath": "assets/images/minions/sugarplum_sprinklewood.png"
+    }
+]

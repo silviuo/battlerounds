@@ -19,6 +19,14 @@ class BattleroundsGame extends FlameGame<BattleroundsWorld> {
     const Rect.fromLTWH(0, 0, cardWidth, cardHeight),
     const Radius.circular(cardRadius),
   );
+  static final Map<int, int> cardCopiesPerTier = {
+    1: 16,
+    2: 15,
+    3: 13,
+    4: 11,
+    5: 9,
+    6: 7,
+  };
 
   GameStage currentStage = GameStage.mainMenu;
 
@@ -38,8 +46,9 @@ class BattleroundsGame extends FlameGame<BattleroundsWorld> {
     world = BattleroundsWorld();
   }
 
-  void startGame() {
+  Future<void> startGame() async {
     currentStage = GameStage.recruitingPlayer1;
+    await world.initializeCardPool();
     world.initializeRecruitingPhase(player: 1);
     overlays.remove('MainMenu');
   }

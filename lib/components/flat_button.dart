@@ -11,7 +11,7 @@ class FlatButton extends ButtonComponent {
     super.position,
   }) : super(
           button: ButtonBackground(const Color(0xffece8a3)),
-          buttonDown: ButtonBackground(Colors.red),
+          buttonDown: ButtonBackground(const Color.fromARGB(255, 137, 47, 15)),
           children: [
             TextComponent(
               text: text,
@@ -19,7 +19,7 @@ class FlatButton extends ButtonComponent {
                 style: TextStyle(
                   fontSize: 0.5 * size!.y,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xffdbaf58),
+                  color: const Color.fromARGB(255, 85, 61, 13),
                 ),
               ),
               position: size / 2.0,

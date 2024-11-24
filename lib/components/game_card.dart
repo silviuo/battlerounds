@@ -3,7 +3,8 @@ import 'dart:ui';
 
 import 'package:battlerounds/battlerounds_game.dart';
 import 'package:battlerounds/battlerounds_world.dart';
-import 'package:battlerounds/models/card_holder.dart';
+import 'package:battlerounds/components/card_power.dart';
+import 'package:battlerounds/components/card_powers.dart';
 import 'package:battlerounds/models/race.dart';
 import 'package:battlerounds/models/tier.dart';
 import 'package:flame/components.dart';
@@ -11,17 +12,30 @@ import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/animation.dart';
 
-class MinionCard extends PositionComponent
+class GameCard extends PositionComponent
     with DragCallbacks, TapCallbacks, HasWorldReference<BattleroundsWorld> {
-  MinionCard(Tier tier, Race race)
-      : _tier = tier,
-        _race = race,
-        super(
+  final String name;
+  final Tier tier;
+  final Race race;
+
+  int baseAttack;
+  int baseHealth;
+  List<CardPower> basePowers;
+  List<String> basePowerDescriptions;
+  String spritePath;
+
+  GameCard({
+    required this.name,
+    required this.tier,
+    required this.race,
+    required this.baseAttack,
+    required this.baseHealth,
+    required this.basePowers,
+    required this.basePowerDescriptions,
+    required this.spritePath,
+  }) : super(
           size: BattleroundsGame.cardSize,
         );
-
-  final Tier _tier;
-  final Race _race;
   // final CardHolder cardHolder;
 
   // A Base Card is rendered in outline only and is NOT playable. It can be
@@ -34,11 +48,78 @@ class MinionCard extends PositionComponent
   bool _isDragging = false;
   Vector2 _whereCardStarted = Vector2(0, 0);
 
-  final List<MinionCard> attachedCards = [];
+  final List<GameCard> attachedCards = [];
+
+  /// Converts the GameCard object to JSON.
+  Map<String, dynamic> toJson() {
+    return {
+      "name": name,
+      "tier": tier,
+      "race": race,
+      "baseAttack": baseAttack,
+      "baseHealth": baseHealth,
+      "basePowers": basePowers.map((power) => power.toJson()).toList(),
+      "basePowerDescriptions": basePowerDescriptions,
+      "spritePath": spritePath,
+    };
+  }
+
+  /// Factory method to create a GameCard from JSON.
+  factory GameCard.fromJson(Map<String, dynamic> json) {
+    return GameCard(
+      name: json["name"],
+      tier: Tier(json["tier"]),
+      race: _raceFromJson(json["race"]),
+      baseAttack: json["baseAttack"],
+      baseHealth: json["baseHealth"],
+      basePowers: (json["basePowers"] as List<dynamic>)
+          .map((power) => _powerFromJson(power as String))
+          .toList(),
+      basePowerDescriptions: List<String>.from(json["basePowerDescriptions"]),
+      spritePath: json["spritePath"],
+    );
+  }
+
+  /// Helper method to convert the "race" field to the Race enum
+  static Race _raceFromJson(String race) {
+    switch (race.toLowerCase()) {
+      case 'human':
+        return Race.human;
+      case 'goblin':
+        return Race.goblin;
+      default:
+        throw Exception('Unknown race: $race');
+    }
+  }
+
+  /// Helper method to deserialize powers.
+  static CardPower _powerFromJson(String powerName) {
+    switch (powerName) {
+      case "DivineShieldPower":
+        return DivineShieldPower();
+      case "TauntPower":
+        return TauntPower();
+      case "DeathrattlePower":
+        return DeathrattlePower();
+      case "BattlecryPower":
+        return BattlecryPower();
+      case "RebornPower":
+        return RebornPower();
+      default:
+        throw Exception("Unknown power: $powerName");
+    }
+  }
 
   @override
-  String toString() =>
-      "Tier ${_tier.value} Race ${_race.name}"; // e.g. "Tier 1 Race human" or "Tier 3 Race goblin"
+  String toString() {
+    return '''
+    $name (Tier ${tier.value}, Race: ${race.name})
+    Attack: $baseAttack / Health: $baseHealth
+    Powers: ${basePowers.map((p) => p.runtimeType).join(', ')}
+    Descriptions: ${basePowerDescriptions.join(', ')}
+    Sprite Path: $spritePath
+    ''';
+  }
 
   //#region Rendering
 

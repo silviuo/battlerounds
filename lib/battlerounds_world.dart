@@ -1,12 +1,15 @@
+import 'dart:convert';
+
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/flame.dart';
 import 'package:flutter/material.dart';
 
 import 'package:battlerounds/battlerounds_game.dart';
-import 'package:battlerounds/components/card.dart';
+import 'package:battlerounds/components/game_card.dart';
 import 'package:battlerounds/components/flat_button.dart';
 import 'package:battlerounds/enums/action.dart';
+import 'package:flutter/services.dart';
 
 class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
   final cardGap = BattleroundsGame.cardGap;
@@ -18,7 +21,7 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
   // final bottomHeroCardHolder= = CardHolder(position: Vector2(0.0, 0.0));
   // final List<BottomCardHolder> bottomCardHolders = [];
   // final List<TopCardHolder> topCardHolders = [];
-  final List<MinionCard> cardsPool = [];
+  final List<GameCard> cardsPool = [];
   late Vector2 playAreaSize;
 
   late TextComponent gamePhaseText;
@@ -55,7 +58,7 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
       String label, double buttonX, double buttonY, ActionType action) {
     final button = FlatButton(
       label,
-      size: Vector2(100, 50),
+      size: Vector2(150, 50),
       position: Vector2(buttonX, buttonY),
       onReleased: () {
         executeAction(action);
@@ -74,6 +77,24 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
         break;
       default:
         break;
+    }
+  }
+
+  Future<void> initializeCardPool() async {
+    final String jsonString = await rootBundle.loadString('json/minions.json');
+    final List<Map<String, dynamic>> cardDataList =
+        List<Map<String, dynamic>>.from(jsonDecode(jsonString));
+
+    // Initialize the card pool with all available cards.
+    for (var cardData in cardDataList) {
+      // Create a GameCard from the JSON data
+      GameCard gameCard = GameCard.fromJson(cardData);
+
+      // Add the appropriate number of copies based on the card's tier
+      int copies = BattleroundsGame.cardCopiesPerTier[gameCard.tier.value] ?? 0;
+      for (int i = 0; i < copies; i++) {
+        cardsPool.add(GameCard.fromJson(cardData));
+      }
     }
   }
 
@@ -101,7 +122,7 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
 
   void clearCards() {
     // Clear any card components from the board.
-    removeAll(children.whereType<MinionCard>());
+    removeAll(children.whereType<GameCard>());
   }
 
   // draw the background image
