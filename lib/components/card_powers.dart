@@ -1,4 +1,4 @@
-import 'package:battlerounds/components/card_power.dart';
+import 'package:battlerounds/models/card_power.dart';
 import 'package:battlerounds/components/game_card.dart';
 
 class DivineShieldPower implements CardPower {

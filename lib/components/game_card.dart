@@ -3,8 +3,10 @@ import 'dart:ui';
 
 import 'package:battlerounds/battlerounds_game.dart';
 import 'package:battlerounds/battlerounds_world.dart';
-import 'package:battlerounds/components/card_power.dart';
+import 'package:battlerounds/components/minion_card_holder.dart';
+import 'package:battlerounds/models/card_power.dart';
 import 'package:battlerounds/components/card_powers.dart';
+import 'package:battlerounds/models/card_holder.dart';
 import 'package:battlerounds/models/race.dart';
 import 'package:battlerounds/models/tier.dart';
 import 'package:flame/components.dart';
@@ -36,19 +38,12 @@ class GameCard extends PositionComponent
   }) : super(
           size: BattleroundsGame.cardSize,
         );
-  // final CardHolder cardHolder;
-
-  // A Base Card is rendered in outline only and is NOT playable. It can be
-  // added to the base of a Pile (e.g. the Stock Pile) to allow it to handle
-  // taps and short drags (on an empty Pile) with the same behavior and
-  // tolerances as for regular cards (see BattleroundsGame.dragTolerance) and using
-  // the same event-handling code, but with different handleTapUp() methods.
-  // final bool isBaseCard;
+  CardHolder? cardHolder;
 
   bool _isDragging = false;
   Vector2 _whereCardStarted = Vector2(0, 0);
 
-  final List<GameCard> attachedCards = [];
+  //#region Serialization
 
   /// Converts the GameCard object to JSON.
   Map<String, dynamic> toJson() {
@@ -120,6 +115,8 @@ class GameCard extends PositionComponent
     Sprite Path: $spritePath
     ''';
   }
+
+  //#endregion
 
   //#region Rendering
 
@@ -243,7 +240,6 @@ class GameCard extends PositionComponent
     }
     final delta = event.localDelta;
     position.add(delta);
-    attachedCards.forEach((card) => card.position.add(delta));
   }
 
   @override
@@ -254,26 +250,35 @@ class GameCard extends PositionComponent
     }
     _isDragging = false;
 
-    // If short drag, return card to Pile and treat it as having been tapped.
+    // If short drag, return card to its holder.
     final shortDrag =
         (position - _whereCardStarted).length < BattleroundsGame.dragTolerance;
-    if (shortDrag && attachedCards.isEmpty) {
+    if (shortDrag) {
       doMove(
         _whereCardStarted,
         onComplete: () {
-          // cardHolder!.returnCard(this);
-          // Card moves to its Foundation Pile next, if valid, or it stays put.
-          handleTapUp();
+          cardHolder!.returnCard(this);
         },
       );
       return;
     }
 
     // Find out what is under the center-point of this card when it is dropped.
-    // final dropPiles = parent!
-    //     .componentsAtPoint(position + size / 2)
-    //     .whereType<Pile>()
-    //     .toList();
+    final heroCardHolders = parent!
+        .componentsAtPoint(position + size / 2)
+        .whereType<CardHolder>()
+        .toList();
+    if (heroCardHolders.isNotEmpty) {
+      if (heroCardHolders.first.canAcceptCard(this)) {
+        // Found a card holder: move card the rest of the way onto it.
+        cardHolder!.removeCard(this, MoveMethod.drag);
+        if (heroCardHolders.first is MinionCardHolder) {
+          // Get MinionCardHolder to handle positions, priorities and moves of cards.
+          (heroCardHolders.first as MinionCardHolder).acquireCard(this);
+        }
+        return;
+      }
+    }
     // if (dropPiles.isNotEmpty) {
     //   if (dropPiles.first.canAcceptCard(this)) {
     //     // Found a Pile: move card(s) the rest of the way onto it.
@@ -329,6 +334,7 @@ class GameCard extends PositionComponent
     handleTapUp();
   }
 
+  // TODO show card details on tap
   void handleTapUp() {
     // Can be called by onTapUp or after a very short (failed) drag-and-drop.
     // We need to be more user-friendly towards taps that include a short drag.
@@ -375,6 +381,7 @@ class GameCard extends PositionComponent
     );
   }
 
+  // TODO probably not needed
   void doMoveAndFlip(
     Vector2 to, {
     double speed = 10.0,
