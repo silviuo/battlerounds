@@ -7,7 +7,7 @@ import 'package:battlerounds/battlerounds_game.dart';
 import 'overlays/game_over.dart';
 import 'overlays/main_menu.dart';
 
-void main() {
+Future<void> main() async {
   runApp(
     GameWidget<BattleroundsGame>.controlled(
       gameFactory: BattleroundsGame.new,

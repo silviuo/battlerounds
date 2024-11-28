@@ -12,10 +12,15 @@ import 'package:battlerounds/models/tier.dart';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
+import 'package:flame/flame.dart';
 import 'package:flutter/animation.dart';
 
 class GameCard extends PositionComponent
-    with DragCallbacks, TapCallbacks, HasWorldReference<BattleroundsWorld> {
+    with
+        DragCallbacks,
+        TapCallbacks,
+        HasWorldReference<BattleroundsWorld>,
+        HasGameReference<BattleroundsGame> {
   final String name;
   final Tier tier;
   final Race race;
@@ -25,6 +30,12 @@ class GameCard extends PositionComponent
   List<CardPower> basePowers;
   List<String> basePowerDescriptions;
   String spritePath;
+
+  CardHolder? cardHolder;
+
+  bool _isDragging = false;
+  Vector2 _whereCardStarted = Vector2(0, 0);
+  late final Sprite cardPortrait;
 
   GameCard({
     required this.name,
@@ -38,10 +49,6 @@ class GameCard extends PositionComponent
   }) : super(
           size: BattleroundsGame.cardSize,
         );
-  CardHolder? cardHolder;
-
-  bool _isDragging = false;
-  Vector2 _whereCardStarted = Vector2(0, 0);
 
   //#region Serialization
 
@@ -118,15 +125,31 @@ class GameCard extends PositionComponent
 
   //#endregion
 
+  @override
+  void onLoad() {
+    cardPortrait = loadSprite(
+      spritePath,
+      0,
+      0,
+      512,
+      512,
+    );
+  }
+
   //#region Rendering
 
   @override
   void render(Canvas canvas) {
-    // if (isBaseCard) {
-    //   _renderBaseCard(canvas);
-    // }else {
-    //   _renderCard(canvas);
-    // }
+    _renderCard(canvas);
+  }
+
+  Sprite loadSprite(
+      String spritePath, double x, double y, double width, double height) {
+    return Sprite(
+      game.images.fromCache(spritePath),
+      srcPosition: Vector2(x, y),
+      srcSize: Vector2(width, height),
+    );
   }
 
   static final Paint backBackgroundPaint = Paint()
@@ -144,17 +167,13 @@ class GameCard extends PositionComponent
     const Radius.circular(BattleroundsGame.cardRadius),
   );
   static final RRect backRRectInner = cardRRect.deflate(40);
-  // static final Sprite cardFace = Sprite;
 
   void _renderCard(Canvas canvas) {
     canvas.drawRRect(cardRRect, backBackgroundPaint);
     canvas.drawRRect(cardRRect, backBorderPaint1);
     canvas.drawRRect(backRRectInner, backBorderPaint2);
-    // cardFace.render(canvas, position: size / 2, anchor: Anchor.center);
-  }
-
-  void _renderBaseCard(Canvas canvas) {
-    canvas.drawRRect(cardRRect, backBorderPaint1);
+    cardPortrait.render(canvas,
+        position: size / 2, anchor: Anchor.center, size: size);
   }
 
   static final Paint frontBackgroundPaint = Paint()
@@ -173,31 +192,6 @@ class GameCard extends PositionComponent
       BlendMode.srcATop,
     );
 
-  void _drawSprite(
-    Canvas canvas,
-    Sprite sprite,
-    double relativeX,
-    double relativeY, {
-    double scale = 1,
-    bool rotate = false,
-  }) {
-    if (rotate) {
-      canvas.save();
-      canvas.translate(size.x / 2, size.y / 2);
-      canvas.rotate(pi);
-      canvas.translate(-size.x / 2, -size.y / 2);
-    }
-    sprite.render(
-      canvas,
-      position: Vector2(relativeX * size.x, relativeY * size.y),
-      anchor: Anchor.center,
-      size: sprite.srcSize.scaled(scale),
-    );
-    if (rotate) {
-      canvas.restore();
-    }
-  }
-
   //#endregion
 
   //#region Card-Dragging
@@ -213,24 +207,16 @@ class GameCard extends PositionComponent
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
-    // if (cardHolder is StockPile) {
+    // if (cardHolder is TavernCardHolder) {
     //   _isDragging = false;
     //   return;
     // }
     // // Clone the position, else _whereCardStarted changes as the position does.
-    // _whereCardStarted = position.clone();
-    // attachedCards.clear();
-    // if (cardHolder?.canMoveCard(this, MoveMethod.drag) ?? false) {
-    //   _isDragging = true;
-    //   priority = 100;
-    //   if (cardHolder is TableauPile) {
-    //     final extraCards = (cardHolder! as TableauPile).cardsOnTop(this);
-    //     for (final card in extraCards) {
-    //       card.priority = attachedCards.length + 101;
-    //       attachedCards.add(card);
-    //     }
-    //   }
-    // }
+    _whereCardStarted = position.clone();
+    if (cardHolder?.canMoveCard(this, MoveMethod.drag) ?? false) {
+      _isDragging = true;
+      priority = 100;
+    }
   }
 
   @override
@@ -301,33 +287,20 @@ class GameCard extends PositionComponent
     //   }
     // }
 
-    // Invalid drop (middle of nowhere, invalid pile or invalid card for pile).
-    // doMove(
-    //   _whereCardStarted,
-    //   onComplete: () {
-    //     cardHolder!.returnCard(this);
-    //   },
-    // );
-    // if (attachedCards.isNotEmpty) {
-    //   attachedCards.forEach((card) {
-    //     final offset = card.position - position;
-    //     card.doMove(
-    //       _whereCardStarted + offset,
-    //       onComplete: () {
-    //         cardHolder!.returnCard(card);
-    //       },
-    //     );
-    //   });
-    //   attachedCards.clear();
-    // }
+    // Invalid drop (middle of nowhere or invalid holder).
+    doMove(
+      _whereCardStarted,
+      onComplete: () {
+        cardHolder!.returnCard(this);
+      },
+    );
   }
 
   //#endregion
 
   //#region Card-Tapping
 
-  // Tap a face-up card to make it auto-move and go out (if acceptable), but
-  // if it is face-down and on the Stock Pile, pass the event to that pile.
+  // Tap a card to show minion information.
 
   @override
   void onTapUp(TapUpEvent event) {
@@ -376,31 +349,6 @@ class GameCard extends PositionComponent
         transitPriority: startPriority,
         onComplete: () {
           onComplete?.call();
-        },
-      ),
-    );
-  }
-
-  // TODO probably not needed
-  void doMoveAndFlip(
-    Vector2 to, {
-    double speed = 10.0,
-    double start = 0.0,
-    Curve curve = Curves.easeOutQuad,
-    VoidCallback? whenDone,
-  }) {
-    assert(speed > 0.0, 'Speed must be > 0 widths per second');
-    final dt = (to - position).length / (speed * size.x);
-    assert(dt > 0, 'Distance to move must be > 0');
-    priority = 100;
-    add(
-      MoveToEffect(
-        to,
-        EffectController(duration: dt, startDelay: start, curve: curve),
-        onComplete: () {
-          // turnFaceUp(
-          //   onComplete: whenDone,
-          // );
         },
       ),
     );

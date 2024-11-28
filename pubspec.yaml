@@ -16,3 +16,6 @@ flutter:
   assets:
     - assets/audio/
     - assets/images/
+    - assets/images/minions/
+    - assets/images/heroes/
+    - assets/json/

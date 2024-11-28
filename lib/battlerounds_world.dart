@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:math';
 
+import 'package:battlerounds/components/minion_card_holder.dart';
+import 'package:battlerounds/enums/game_stage.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/flame.dart';
@@ -19,9 +22,11 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
 
   // final topHeroCardHolder = CardHolder(position: Vector2(0.0, 0.0));
   // final bottomHeroCardHolder= = CardHolder(position: Vector2(0.0, 0.0));
-  // final List<BottomCardHolder> bottomCardHolders = [];
-  // final List<TopCardHolder> topCardHolders = [];
+  final List<MinionCardHolder> bottomCardHolders = [];
+  final List<MinionCardHolder> topCardHolders = [];
   final List<GameCard> cardsPool = [];
+  final List<GameCard> p1Minions = [];
+  final List<GameCard> p2Minions = [];
   late Vector2 playAreaSize;
 
   late TextComponent gamePhaseText;
@@ -29,29 +34,61 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
 
   @override
   Future<void> onLoad() async {
-    await Flame.images.load('board_background.png');
+    await Flame.images.loadAll([
+      'board_background.png',
+      'hourglass.png',
+      'coin.png',
+      'frame_blue.png',
+      'frame_green.png',
+      'minions/ebenezer_snowsnatch.png',
+      'minions/gobbler_greedgift.png',
+      'minions/grinchy_grouchsnatch.png',
+      'minions/grumble_gravygnaw.png',
+      'minions/holly_hugsalot.png',
+      'minions/kris_krinklewink.png',
+      'minions/peppermint_prancer.png',
+      'minions/pukey_pineclaw.png',
+      'minions/sludge_stocking-snatcher.png',
+      'minions/sugarplum_sprinklewood.png',
+      'heroes/human_queen.png',
+      'heroes/goblin_king.png',
+    ]);
 
-    // TODO Remove test placeholders
-    gamePhaseText = TextComponent(
-      text: 'Phase: Main Menu',
-      position: Vector2(-120, -200),
-      textRenderer: TextPaint(
-        style: TextStyle(fontSize: 24, color: Colors.white) as TextStyle?,
-      ),
-    );
-    add(gamePhaseText);
+    for (var i = 0; i < 7; i++) {
+      topCardHolders.add(
+        MinionCardHolder(
+          position:
+              Vector2(i * cardSpaceWidth + cardGap, topGap + cardSpaceHeight),
+        ),
+      );
+      bottomCardHolders.add(
+        MinionCardHolder(
+          position: Vector2(
+              i * cardSpaceWidth + cardGap, topGap * 2 + cardSpaceHeight * 2),
+        ),
+      );
+    }
+    // addButton('End Game', 120, 0, ActionType.endGame);
 
-    playerHealthText = TextComponent(
-      text: 'P1: 30 HP | P2: 30 HP',
-      position: Vector2(-120, -100),
-      textRenderer: TextPaint(
-        style: TextStyle(fontSize: 24, color: Colors.white),
-      ),
-    );
-    add(playerHealthText);
+    await initializeCardPool();
 
-    addButton('Ready', -120, 0, ActionType.endRound);
-    addButton('End Game', 120, 0, ActionType.endGame);
+    addAll(topCardHolders);
+    addAll(bottomCardHolders);
+    addAll(cardsPool);
+
+    playAreaSize = Vector2(
+        7 * cardSpaceWidth + 2 * cardGap, 4 * cardSpaceHeight + 2 * topGap);
+    final gameMidX = playAreaSize.x / 2;
+    final gameMidY = playAreaSize.y / 2;
+
+    final camera = game.camera;
+    camera.viewfinder.visibleGameSize = playAreaSize;
+    camera.viewfinder.position = Vector2(gameMidX, 0);
+    camera.viewfinder.anchor = Anchor.topCenter;
+
+    addButton('Ready', gameMidX, 0, ActionType.endRound);
+
+    dealCards();
   }
 
   void addButton(
@@ -65,6 +102,11 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
       },
     );
     add(button);
+  }
+
+  void addCard(GameCard card, double x, double y) {
+    card.position = Vector2(x, y);
+    add(card);
   }
 
   void executeAction(ActionType action) {
@@ -81,7 +123,8 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
   }
 
   Future<void> initializeCardPool() async {
-    final String jsonString = await rootBundle.loadString('json/minions.json');
+    final String jsonString =
+        await rootBundle.loadString('assets/json/minions.json');
     final List<Map<String, dynamic>> cardDataList =
         List<Map<String, dynamic>>.from(jsonDecode(jsonString));
 
@@ -96,15 +139,86 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
         cardsPool.add(GameCard.fromJson(cardData));
       }
     }
+
+    cardsPool.shuffle(Random(Random().nextInt(BattleroundsGame.maxInt)));
   }
 
-  void initializeRecruitingPhase({required int player}) {
+  Future<void> initializeRecruitingPhase() async {
     // Setup for the recruiting phase for the given player.
-    clearCards();
-    if (player == 1) {
-      // Show cards for player 1.
+    // clearCards();
+    dealCards();
+  }
+
+  void dealCards() {
+    for (final card in cardsPool) {
+      card.priority = 1;
+    }
+
+    if (game.currentStage == GameStage.recruitingPlayer1) {
+      dealCardsToPlayer(1);
+    } else if (game.currentStage == GameStage.recruitingPlayer2) {
+      dealCardsToPlayer(2);
     } else {
-      // Show cards for player 2.
+      dealCardsForCombat();
+    }
+
+    // // Change priority as cards take off: so later cards fly above earlier ones.
+    // var cardToDeal = cards.length - 1;
+    // var nMovingCards = 0;
+    // for (var i = 0; i < 7; i++) {
+    //   for (var j = i; j < 7; j++) {
+    //     final card = cards[cardToDeal--];
+    //     card.doMove(
+    //       tableauPiles[j].position,
+    //       speed: 15.0,
+    //       start: nMovingCards * 0.15,
+    //       startPriority: 100 + nMovingCards,
+    //       onComplete: () {
+    //         tableauPiles[j].acquireCard(card);
+    //         nMovingCards--;
+    //         if (nMovingCards == 0) {
+    //           var delayFactor = 0;
+    //           for (final tableauPile in tableauPiles) {
+    //             delayFactor++;
+    //             tableauPile.flipTopCard(start: delayFactor * 0.15);
+    //           }
+    //         }
+    //       },
+    //     );
+    //     nMovingCards++;
+    //   }
+    // }
+    // for (var n = 0; n <= cardToDeal; n++) {
+    //   stock.acquireCard(cards[n]);
+    // }
+  }
+
+  void dealCardsToPlayer(int player) {
+    // If dealing cards to a player, the top card holder is for the tavern minions,
+    // and the bottom card holder is for the player's minions.
+    // Deal 7 cards to the top card holder from the card pool.
+    for (var i = 0; i < 7; i++) {
+      final card = cardsPool.removeLast();
+      topCardHolders[i].acquireCard(card);
+    }
+    // Deal the player's cards to the bottom card holder.
+    final playerMinions = player == 1 ? p1Minions : p2Minions;
+    for (var i = 0; i < playerMinions.length; i++) {
+      final card = playerMinions[i];
+      bottomCardHolders[i].acquireCard(card);
+    }
+  }
+
+  void dealCardsForCombat() {
+    // Deal 7 cards to the top card holder from the p2Minions.
+    for (var i = 0; i < p2Minions.length; i++) {
+      final card = p2Minions[i];
+      topCardHolders[i].acquireCard(card);
+    }
+    // Deal 7 cards to the bottom card holder from the p1Minions.
+    for (var i = 0; i < p1Minions.length; i++) {
+      final card = p1Minions[i];
+      bottomCardHolders[i].acquireCard(card);
     }
   }
 
@@ -138,10 +252,5 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
   @override
   void update(double dt) {
     super.update(dt);
-
-    // Update game phase and health dynamically
-    gamePhaseText.text = 'Phase: ${game.currentStage.name}';
-    playerHealthText.text =
-        'P1: ${game.player1Health} HP | P2: ${game.player2Health} HP';
   }
 }

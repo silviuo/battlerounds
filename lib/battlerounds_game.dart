@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 
 import 'package:battlerounds/battlerounds_world.dart';
@@ -9,7 +8,7 @@ import 'package:battlerounds/enums/game_stage.dart';
 class BattleroundsGame extends FlameGame<BattleroundsWorld> {
   static const double cardGap = 175.0;
   static const double topGap = 500.0;
-  static const double cardHeight = 1400.0;
+  static const double cardHeight = 1000.0;
   static const double cardWidth = 1000.0;
   static const double cardRadius = 100.0;
   static const double cardSpaceWidth = cardWidth + cardGap;
@@ -48,15 +47,13 @@ class BattleroundsGame extends FlameGame<BattleroundsWorld> {
 
   Future<void> startGame() async {
     currentStage = GameStage.recruitingPlayer1;
-    await world.initializeCardPool();
-    world.initializeRecruitingPhase(player: 1);
     overlays.remove('MainMenu');
   }
 
   void playerReady() {
     if (currentStage == GameStage.recruitingPlayer1) {
       currentStage = GameStage.recruitingPlayer2;
-      world.initializeRecruitingPhase(player: 2);
+      world.initializeRecruitingPhase();
     } else if (currentStage == GameStage.recruitingPlayer2) {
       currentStage = GameStage.combat;
       world.initializeCombatPhase();
@@ -72,7 +69,7 @@ class BattleroundsGame extends FlameGame<BattleroundsWorld> {
       overlays.add('GameOver');
     } else {
       currentStage = GameStage.recruitingPlayer1;
-      world.initializeRecruitingPhase(player: 1);
+      world.initializeRecruitingPhase();
     }
   }
 
