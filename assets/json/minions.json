@@ -11,7 +11,7 @@
         "basePowerDescriptions": [
             "Divine Shield: The first time a Shielded minion takes damage, ignore it."
         ],
-        "spritePath": "assets/images/minions/gobbler_greedgift.png"
+        "spritePath": "minions/gobbler_greedgift.png"
     },
     {
         "name": "Sludge the Stocking-Snatcher",
@@ -25,7 +25,7 @@
         "basePowerDescriptions": [
             "Battlecry: Deal 2 damage to an enemy minion."
         ],
-        "spritePath": "assets/images/minions/sludge_stocking-snatcher.png"
+        "spritePath": "minions/sludge_stocking-snatcher.png"
     },
     {
         "name": "Pukey Pineclaw",
@@ -39,7 +39,7 @@
         "basePowerDescriptions": [
             "Reborn: This minion returns to life with 1 Health after it dies."
         ],
-        "spritePath": "assets/images/minions/pukey_pineclaw.png"
+        "spritePath": "minions/pukey_pineclaw.png"
     },
     {
         "name": "Grumble Gravygnaw",
@@ -53,7 +53,7 @@
         "basePowerDescriptions": [
             "Deathrattle: Deal 3 damage to a random enemy minion."
         ],
-        "spritePath": "assets/images/minions/grumble_gravygnaw.png"
+        "spritePath": "minions/grumble_gravygnaw.png"
     },
     {
         "name": "Grinchy Grouchsnatch",
@@ -67,7 +67,7 @@
         "basePowerDescriptions": [
             "Taunt: Enemies must attack this minion first."
         ],
-        "spritePath": "assets/images/minions/grinchy_grouchsnatch.png"
+        "spritePath": "minions/grinchy_grouchsnatch.png"
     },
     {
         "name": "Kris Krinklewink",
@@ -81,7 +81,7 @@
         "basePowerDescriptions": [
             "Divine Shield: The first time a Shielded minion takes damage, ignore it."
         ],
-        "spritePath": "assets/images/minions/kris_krinklewink.png"
+        "spritePath": "minions/kris_krinklewink.png"
     },
     {
         "name": "Holly Hugsalot",
@@ -95,7 +95,7 @@
         "basePowerDescriptions": [
             "Reborn: This minion returns to life with 1 Health after it dies."
         ],
-        "spritePath": "assets/images/minions/holly_hugsalot.png"
+        "spritePath": "minions/holly_hugsalot.png"
     },
     {
         "name": "Ebenezer Snowsnatch",
@@ -109,7 +109,7 @@
         "basePowerDescriptions": [
             "Battlecry: Deal 3 damage to a random enemy minion."
         ],
-        "spritePath": "assets/images/minions/ebenezer_snowsnatch.png"
+        "spritePath": "minions/ebenezer_snowsnatch.png"
     },
     {
         "name": "Peppermint Prancer",
@@ -123,7 +123,7 @@
         "basePowerDescriptions": [
             "Taunt: Enemies must attack this minion first."
         ],
-        "spritePath": "assets/images/minions/peppermint_prancer.png"
+        "spritePath": "minions/peppermint_prancer.png"
     },
     {
         "name": "Sugarplum Sprinklewood",
@@ -137,6 +137,6 @@
         "basePowerDescriptions": [
             "Deathrattle: Restore 5 Health to a random friendly minion."
         ],
-        "spritePath": "assets/images/minions/sugarplum_sprinklewood.png"
+        "spritePath": "minions/sugarplum_sprinklewood.png"
     }
 ]

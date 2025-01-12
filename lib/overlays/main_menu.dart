@@ -20,7 +20,7 @@ class MainMenu extends StatelessWidget {
           width: double.infinity,
           decoration: BoxDecoration(
             image: const DecorationImage(
-              image: AssetImage('images/main_menu_background.png'),
+              image: AssetImage('assets/images/main_menu_background.png'),
               fit: BoxFit.contain,
               alignment: Alignment.center,
             ),

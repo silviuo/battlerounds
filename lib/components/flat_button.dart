@@ -17,7 +17,7 @@ class FlatButton extends ButtonComponent {
               text: text,
               textRenderer: TextPaint(
                 style: TextStyle(
-                  fontSize: 0.5 * size!.y,
+                  fontSize: 0.4 * size!.y,
                   fontWeight: FontWeight.bold,
                   color: const Color.fromARGB(255, 85, 61, 13),
                 ),
@@ -26,7 +26,7 @@ class FlatButton extends ButtonComponent {
               anchor: Anchor.center,
             ),
           ],
-          anchor: Anchor.center,
+          // anchor: Anchor.center,
         );
 }
 

@@ -1,0 +1,30 @@
+[
+    {
+        "name": "Ice Queen",
+        "race": "human",
+        "heroPower": "TBD",
+        "heroPowerDescription": "TBD",
+        "spritePath": "heroes/human_queen.png"
+    },
+    {
+        "name": "Human Tavern Keeper",
+        "race": "human",
+        "heroPower": "TBD",
+        "heroPowerDescription": "TBD",
+        "spritePath": "heroes/human_tavern_keeper.png"
+    },
+    {
+        "name": "Goblin King",
+        "race": "goblin",
+        "heroPower": "TBD",
+        "heroPowerDescription": "TBD",
+        "spritePath": "heroes/goblin_king.png"
+    },
+    {
+        "name": "Goblin Tavern Keeper",
+        "race": "goblin",
+        "heroPower": "TBD",
+        "heroPowerDescription": "TBD",
+        "spritePath": "heroes/goblin_tavern_keeper.png"
+    }
+]

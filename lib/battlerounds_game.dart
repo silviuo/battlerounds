@@ -6,11 +6,11 @@ import 'package:battlerounds/battlerounds_world.dart';
 import 'package:battlerounds/enums/game_stage.dart';
 
 class BattleroundsGame extends FlameGame<BattleroundsWorld> {
-  static const double cardGap = 175.0;
-  static const double topGap = 500.0;
-  static const double cardHeight = 1000.0;
-  static const double cardWidth = 1000.0;
-  static const double cardRadius = 100.0;
+  static const double cardGap = 20.0;
+  static const double topGap = 20.0;
+  static const double cardHeight = 100.0;
+  static const double cardWidth = 100.0;
+  static const double cardRadius = 20.0;
   static const double cardSpaceWidth = cardWidth + cardGap;
   static const double cardSpaceHeight = cardHeight + cardGap;
   static final Vector2 cardSize = Vector2(cardWidth, cardHeight);

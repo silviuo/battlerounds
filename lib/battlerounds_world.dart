@@ -1,18 +1,18 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:battlerounds/components/minion_card_holder.dart';
-import 'package:battlerounds/enums/game_stage.dart';
 import 'package:flame/components.dart';
-import 'package:flame/events.dart';
 import 'package:flame/flame.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:battlerounds/battlerounds_game.dart';
-import 'package:battlerounds/components/game_card.dart';
 import 'package:battlerounds/components/flat_button.dart';
+import 'package:battlerounds/components/game_card.dart';
+import 'package:battlerounds/components/hero_card_holder.dart';
+import 'package:battlerounds/components/minion_card_holder.dart';
 import 'package:battlerounds/enums/action.dart';
-import 'package:flutter/services.dart';
+import 'package:battlerounds/enums/game_stage.dart';
 
 class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
   final cardGap = BattleroundsGame.cardGap;
@@ -20,8 +20,8 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
   final cardSpaceWidth = BattleroundsGame.cardSpaceWidth;
   final cardSpaceHeight = BattleroundsGame.cardSpaceHeight;
 
-  // final topHeroCardHolder = CardHolder(position: Vector2(0.0, 0.0));
-  // final bottomHeroCardHolder= = CardHolder(position: Vector2(0.0, 0.0));
+  final topHeroCardHolder = HeroCardHolder(position: Vector2(0.0, 0.0));
+  final bottomHeroCardHolder = HeroCardHolder(position: Vector2(0.0, 0.0));
   final List<MinionCardHolder> bottomCardHolders = [];
   final List<MinionCardHolder> topCardHolders = [];
   final List<GameCard> cardsPool = [];
@@ -51,24 +51,23 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
       'minions/sludge_stocking-snatcher.png',
       'minions/sugarplum_sprinklewood.png',
       'heroes/human_queen.png',
+      'heroes/human_tavern_keeper.png',
       'heroes/goblin_king.png',
+      'heroes/goblin_tavern_keeper.png',
     ]);
 
     for (var i = 0; i < 7; i++) {
+      var position =
+          Vector2(i * cardSpaceWidth + cardGap, topGap + cardSpaceHeight);
       topCardHolders.add(
-        MinionCardHolder(
-          position:
-              Vector2(i * cardSpaceWidth + cardGap, topGap + cardSpaceHeight),
-        ),
+        MinionCardHolder(position: position),
       );
+      position = Vector2(
+          i * cardSpaceWidth + cardGap, topGap * 2 + cardSpaceHeight * 2);
       bottomCardHolders.add(
-        MinionCardHolder(
-          position: Vector2(
-              i * cardSpaceWidth + cardGap, topGap * 2 + cardSpaceHeight * 2),
-        ),
+        MinionCardHolder(position: position),
       );
     }
-    // addButton('End Game', 120, 0, ActionType.endGame);
 
     await initializeCardPool();
 
@@ -86,16 +85,15 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
     camera.viewfinder.position = Vector2(gameMidX, 0);
     camera.viewfinder.anchor = Anchor.topCenter;
 
-    addButton('Ready', gameMidX, 0, ActionType.endRound);
-
-    dealCards();
+    addButton('Ready', playAreaSize.x - 190, 20, ActionType.endRound);
+    addButton('End Game', playAreaSize.x - 110, 20, ActionType.endGame);
   }
 
   void addButton(
       String label, double buttonX, double buttonY, ActionType action) {
     final button = FlatButton(
       label,
-      size: Vector2(150, 50),
+      size: Vector2(75, 25),
       position: Vector2(buttonX, buttonY),
       onReleased: () {
         executeAction(action);
@@ -136,7 +134,7 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
       // Add the appropriate number of copies based on the card's tier
       int copies = BattleroundsGame.cardCopiesPerTier[gameCard.tier.value] ?? 0;
       for (int i = 0; i < copies; i++) {
-        cardsPool.add(GameCard.fromJson(cardData));
+        cardsPool.add(gameCard);
       }
     }
 
@@ -151,7 +149,7 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
 
   void dealCards() {
     for (final card in cardsPool) {
-      card.priority = 1;
+      card.priority = 2;
     }
 
     if (game.currentStage == GameStage.recruitingPlayer1) {
@@ -194,14 +192,14 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
   }
 
   void dealCardsToPlayer(int player) {
-    // If dealing cards to a player, the top card holder is for the tavern minions,
-    // and the bottom card holder is for the player's minions.
-    // Deal 7 cards to the top card holder from the card pool.
+    // If dealing cards to a player, the top card holders are for tavern minions,
+    // and the bottom card holders are for the player's minions.
+    // Deal 7 cards to the top card holders from the card pool.
     for (var i = 0; i < 7; i++) {
       final card = cardsPool.removeLast();
       topCardHolders[i].acquireCard(card);
     }
-    // Deal the player's cards to the bottom card holder.
+    // Deal the player's cards to the bottom card holders.
     final playerMinions = player == 1 ? p1Minions : p2Minions;
     for (var i = 0; i < playerMinions.length; i++) {
       final card = playerMinions[i];
@@ -219,6 +217,14 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
     for (var i = 0; i < p1Minions.length; i++) {
       final card = p1Minions[i];
       bottomCardHolders[i].acquireCard(card);
+    }
+  }
+
+  void addCardToPlayerMinionList(GameCard card) {
+    if (game.currentStage == GameStage.recruitingPlayer1) {
+      p1Minions.add(card);
+    } else if (game.currentStage == GameStage.recruitingPlayer2) {
+      p2Minions.add(card);
     }
   }
 
@@ -243,10 +249,7 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
   @override
   void render(Canvas canvas) {
     Sprite sprite = Sprite(Flame.images.fromCache('board_background.png'));
-    sprite.render(
-      canvas,
-      anchor: Anchor.center,
-    );
+    sprite.render(canvas, size: Vector2(playAreaSize.x, playAreaSize.y));
   }
 
   @override

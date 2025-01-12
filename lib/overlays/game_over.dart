@@ -19,7 +19,7 @@ class GameOver extends StatelessWidget {
           width: double.infinity,
           decoration: BoxDecoration(
             image: const DecorationImage(
-              image: AssetImage('images/game_over_background.png'),
+              image: AssetImage('assets/images/game_over_background.png'),
               fit: BoxFit.contain,
               alignment: Alignment.center,
             ),
@@ -33,7 +33,7 @@ class GameOver extends StatelessWidget {
               const Text(
                 'Victory',
                 style: TextStyle(
-                  color: whiteTextColor,
+                  color: blackTextColor,
                   fontSize: 40,
                 ),
               ),

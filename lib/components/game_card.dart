@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:battlerounds/battlerounds_game.dart';
@@ -35,6 +34,7 @@ class GameCard extends PositionComponent
 
   bool _isDragging = false;
   Vector2 _whereCardStarted = Vector2(0, 0);
+
   late final Sprite cardPortrait;
 
   GameCard({
@@ -126,14 +126,12 @@ class GameCard extends PositionComponent
   //#endregion
 
   @override
-  void onLoad() {
-    cardPortrait = loadSprite(
-      spritePath,
-      0,
-      0,
-      512,
-      512,
-    );
+  Future<void> onLoad() async {
+    await super.onLoad();
+
+    await Flame.images.load(spritePath);
+
+    cardPortrait = loadCardPortrait(spritePath);
   }
 
   //#region Rendering
@@ -157,23 +155,42 @@ class GameCard extends PositionComponent
   static final Paint backBorderPaint1 = Paint()
     ..color = const Color(0xffdbaf58)
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 10;
+    ..strokeWidth = 2;
   static final Paint backBorderPaint2 = Paint()
     ..color = const Color(0x5CEF971B)
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 35;
+    ..strokeWidth = 2;
   static final RRect cardRRect = RRect.fromRectAndRadius(
     BattleroundsGame.cardSize.toRect(),
     const Radius.circular(BattleroundsGame.cardRadius),
   );
-  static final RRect backRRectInner = cardRRect.deflate(40);
+  // static final RRect backRRectInner = cardRRect.deflate(40);
+
+  static Sprite loadCardPortrait(String spritePath) {
+    return Sprite(
+      Flame.images.fromCache(spritePath),
+      srcSize: Vector2(1024, 1024),
+    );
+  }
 
   void _renderCard(Canvas canvas) {
+    // Save canvas state
+    canvas.save();
+
+    // Draw background
     canvas.drawRRect(cardRRect, backBackgroundPaint);
+
+    // Clip with rounded corners
+    canvas.clipRRect(cardRRect);
+
+    // Draw sprite
+    cardPortrait.render(canvas, size: size);
+
+    // Restore canvas to remove clipping
+    canvas.restore();
+
+    // Draw border on top
     canvas.drawRRect(cardRRect, backBorderPaint1);
-    canvas.drawRRect(backRRectInner, backBorderPaint2);
-    cardPortrait.render(canvas,
-        position: size / 2, anchor: Anchor.center, size: size);
   }
 
   static final Paint frontBackgroundPaint = Paint()
@@ -262,6 +279,7 @@ class GameCard extends PositionComponent
           // Get MinionCardHolder to handle positions, priorities and moves of cards.
           (heroCardHolders.first as MinionCardHolder).acquireCard(this);
         }
+        world.addCardToPlayerMinionList(this);
         return;
       }
     }
