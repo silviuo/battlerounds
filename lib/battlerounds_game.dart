@@ -47,16 +47,19 @@ class BattleroundsGame extends FlameGame<BattleroundsWorld> {
 
   Future<void> startGame() async {
     currentStage = GameStage.recruitingPlayer1;
+    world.initializeRecruitingPhase();
     overlays.remove('MainMenu');
   }
 
-  void playerReady() {
+  Future<void> playerReady() async {
     if (currentStage == GameStage.recruitingPlayer1) {
+      world.endRecruitingPhase();
       currentStage = GameStage.recruitingPlayer2;
       world.initializeRecruitingPhase();
     } else if (currentStage == GameStage.recruitingPlayer2) {
+      world.endRecruitingPhase();
       currentStage = GameStage.combat;
-      world.initializeCombatPhase();
+      await world.initializeCombatPhase();
       handleCombatPhase();
     }
   }
@@ -69,6 +72,7 @@ class BattleroundsGame extends FlameGame<BattleroundsWorld> {
       overlays.add('GameOver');
     } else {
       currentStage = GameStage.recruitingPlayer1;
+      world.endCombatPhase();
       world.initializeRecruitingPhase();
     }
   }

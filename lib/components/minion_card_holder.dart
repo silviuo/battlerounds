@@ -10,7 +10,7 @@ class MinionCardHolder extends PositionComponent implements CardHolder {
   MinionCardHolder({super.position}) : super(size: BattleroundsGame.cardSize);
 
   /// Which card is currently placed onto this holder.
-  GameCard? _card;
+  GameCard? heldCard;
 
   //#region GameCard API
 
@@ -21,13 +21,13 @@ class MinionCardHolder extends PositionComponent implements CardHolder {
 
   @override
   bool canAcceptCard(GameCard card) {
-    return _card == null; // Only one card can be placed onto this holder.
+    return heldCard == null; // Only one card can be placed onto this holder.
   }
 
   @override
   void removeCard(GameCard card, MoveMethod method) {
-    assert(_card == card);
-    _card = null;
+    assert(heldCard == card);
+    heldCard = null;
   }
 
   @override
@@ -39,18 +39,19 @@ class MinionCardHolder extends PositionComponent implements CardHolder {
   @override
   void acquireCard(GameCard card) {
     card.cardHolder = this;
-    _card = card;
+    heldCard = card;
     placeCardOntoHolder();
   }
 
   //#endregion
 
   void placeCardOntoHolder() {
-    if (_card == null) {
+    if (heldCard == null) {
       return;
     }
-    _card!.position.setFrom(position);
-    _card!.priority = 1;
+    heldCard!.position.setFrom(position);
+    heldCard!.priority = 1;
+    print('Placed card ${heldCard!.name} onto holder at $position');
   }
 
   //#region Rendering

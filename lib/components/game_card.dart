@@ -1,18 +1,20 @@
 import 'dart:ui';
 
-import 'package:battlerounds/battlerounds_game.dart';
-import 'package:battlerounds/battlerounds_world.dart';
-import 'package:battlerounds/components/minion_card_holder.dart';
-import 'package:battlerounds/models/card_power.dart';
-import 'package:battlerounds/components/card_powers.dart';
-import 'package:battlerounds/models/card_holder.dart';
-import 'package:battlerounds/models/race.dart';
-import 'package:battlerounds/models/tier.dart';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flame/flame.dart';
 import 'package:flutter/animation.dart';
+import 'package:uuid/uuid.dart';
+
+import 'package:battlerounds/battlerounds_game.dart';
+import 'package:battlerounds/battlerounds_world.dart';
+import 'package:battlerounds/components/card_powers.dart';
+import 'package:battlerounds/components/minion_card_holder.dart';
+import 'package:battlerounds/models/card_holder.dart';
+import 'package:battlerounds/models/card_power.dart';
+import 'package:battlerounds/models/race.dart';
+import 'package:battlerounds/models/tier.dart';
 
 class GameCard extends PositionComponent
     with
@@ -20,6 +22,7 @@ class GameCard extends PositionComponent
         TapCallbacks,
         HasWorldReference<BattleroundsWorld>,
         HasGameReference<BattleroundsGame> {
+  final String id;
   final String name;
   final Tier tier;
   final Race race;
@@ -38,6 +41,7 @@ class GameCard extends PositionComponent
   late final Sprite cardPortrait;
 
   GameCard({
+    String? id,
     required this.name,
     required this.tier,
     required this.race,
@@ -46,7 +50,8 @@ class GameCard extends PositionComponent
     required this.basePowers,
     required this.basePowerDescriptions,
     required this.spritePath,
-  }) : super(
+  })  : id = id ?? const Uuid().v4(),
+        super(
           size: BattleroundsGame.cardSize,
         );
 
@@ -55,6 +60,7 @@ class GameCard extends PositionComponent
   /// Converts the GameCard object to JSON.
   Map<String, dynamic> toJson() {
     return {
+      "id": id,
       "name": name,
       "tier": tier,
       "race": race,
@@ -279,7 +285,6 @@ class GameCard extends PositionComponent
           // Get MinionCardHolder to handle positions, priorities and moves of cards.
           (heroCardHolders.first as MinionCardHolder).acquireCard(this);
         }
-        world.addCardToPlayerMinionList(this);
         return;
       }
     }

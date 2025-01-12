@@ -70,10 +70,10 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
     }
 
     await initializeCardPool();
+    addAll(cardsPool);
 
     addAll(topCardHolders);
     addAll(bottomCardHolders);
-    addAll(cardsPool);
 
     playAreaSize = Vector2(
         7 * cardSpaceWidth + 2 * cardGap, 4 * cardSpaceHeight + 2 * topGap);
@@ -84,9 +84,6 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
     camera.viewfinder.visibleGameSize = playAreaSize;
     camera.viewfinder.position = Vector2(gameMidX, 0);
     camera.viewfinder.anchor = Anchor.topCenter;
-
-    addButton('Ready', playAreaSize.x - 190, 20, ActionType.endRound);
-    addButton('End Game', playAreaSize.x - 110, 20, ActionType.endGame);
   }
 
   void addButton(
@@ -130,12 +127,27 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
     for (var cardData in cardDataList) {
       // Create a GameCard from the JSON data
       GameCard gameCard = GameCard.fromJson(cardData);
+      // gameCard.position = Vector2(-150.0, 0.0);
+      gameCard.position = Vector2(0.0, 0.0);
 
       // Add the appropriate number of copies based on the card's tier
       int copies = BattleroundsGame.cardCopiesPerTier[gameCard.tier.value] ?? 0;
       for (int i = 0; i < copies; i++) {
-        cardsPool.add(gameCard);
+        // Create a new instance for each copy
+        GameCard cardCopy = GameCard(
+          name: gameCard.name,
+          tier: gameCard.tier,
+          race: gameCard.race,
+          baseAttack: gameCard.baseAttack,
+          baseHealth: gameCard.baseHealth,
+          basePowers: List.from(gameCard.basePowers),
+          basePowerDescriptions: List.from(gameCard.basePowerDescriptions),
+          spritePath: gameCard.spritePath,
+        );
+        cardCopy.position = Vector2(0.0, 0.0);
+        cardsPool.add(cardCopy);
       }
+      print('Cards left in pool: ${cardsPool.length}');
     }
 
     cardsPool.shuffle(Random(Random().nextInt(BattleroundsGame.maxInt)));
@@ -143,13 +155,37 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
 
   Future<void> initializeRecruitingPhase() async {
     // Setup for the recruiting phase for the given player.
-    // clearCards();
+
+    addButton('Ready', playAreaSize.x - 190, 20, ActionType.endRound);
+    addButton('End Game', playAreaSize.x - 110, 20, ActionType.endGame);
     dealCards();
+  }
+
+  void endRecruitingPhase() {
+    // Clean up after the recruiting phase.
+    if (game.currentStage == GameStage.recruitingPlayer1) {
+      p1Minions.clear();
+    }
+    if (game.currentStage == GameStage.recruitingPlayer2) {
+      p2Minions.clear();
+    }
+
+    // Add the player's minions to the player's minion list.
+    for (final cardHolder in bottomCardHolders) {
+      final card = cardHolder.heldCard;
+      if (card != null) {
+        addCardToPlayerMinionList(card);
+      }
+    }
+    print('Player 1 minions: ${p1Minions.map((e) => e.name).toList()}');
+    print('Player 2 minions: ${p2Minions.map((e) => e.name).toList()}');
+
+    clearCards();
   }
 
   void dealCards() {
     for (final card in cardsPool) {
-      card.priority = 2;
+      card.priority = 1;
     }
 
     if (game.currentStage == GameStage.recruitingPlayer1) {
@@ -159,63 +195,46 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
     } else {
       dealCardsForCombat();
     }
-
-    // // Change priority as cards take off: so later cards fly above earlier ones.
-    // var cardToDeal = cards.length - 1;
-    // var nMovingCards = 0;
-    // for (var i = 0; i < 7; i++) {
-    //   for (var j = i; j < 7; j++) {
-    //     final card = cards[cardToDeal--];
-    //     card.doMove(
-    //       tableauPiles[j].position,
-    //       speed: 15.0,
-    //       start: nMovingCards * 0.15,
-    //       startPriority: 100 + nMovingCards,
-    //       onComplete: () {
-    //         tableauPiles[j].acquireCard(card);
-    //         nMovingCards--;
-    //         if (nMovingCards == 0) {
-    //           var delayFactor = 0;
-    //           for (final tableauPile in tableauPiles) {
-    //             delayFactor++;
-    //             tableauPile.flipTopCard(start: delayFactor * 0.15);
-    //           }
-    //         }
-    //       },
-    //     );
-    //     nMovingCards++;
-    //   }
-    // }
-    // for (var n = 0; n <= cardToDeal; n++) {
-    //   stock.acquireCard(cards[n]);
-    // }
   }
 
   void dealCardsToPlayer(int player) {
     // If dealing cards to a player, the top card holders are for tavern minions,
     // and the bottom card holders are for the player's minions.
     // Deal 7 cards to the top card holders from the card pool.
+    print("---Dealing cards to player $player---");
     for (var i = 0; i < 7; i++) {
       final card = cardsPool.removeLast();
+      print("Setting card to top holder: ${card.name} at index $i");
       topCardHolders[i].acquireCard(card);
     }
+    print('Cards left in pool: ${cardsPool.length}');
     // Deal the player's cards to the bottom card holders.
     final playerMinions = player == 1 ? p1Minions : p2Minions;
     for (var i = 0; i < playerMinions.length; i++) {
       final card = playerMinions[i];
+      print("Setting card to bottom holder: ${card.name} at index $i");
+      card.position = bottomCardHolders[i].position;
+      add(card);
       bottomCardHolders[i].acquireCard(card);
     }
   }
 
   void dealCardsForCombat() {
+    print("---Dealing cards for combat---");
     // Deal 7 cards to the top card holder from the p2Minions.
     for (var i = 0; i < p2Minions.length; i++) {
       final card = p2Minions[i];
+      print("Setting card to top holder: ${card.name} at index $i");
+      card.position = topCardHolders[i].position;
+      add(card);
       topCardHolders[i].acquireCard(card);
     }
     // Deal 7 cards to the bottom card holder from the p1Minions.
     for (var i = 0; i < p1Minions.length; i++) {
       final card = p1Minions[i];
+      print("Setting card to bottom holder: ${card.name} at index $i");
+      card.position = bottomCardHolders[i].position;
+      add(card);
       bottomCardHolders[i].acquireCard(card);
     }
   }
@@ -223,26 +242,69 @@ class BattleroundsWorld extends World with HasGameReference<BattleroundsGame> {
   void addCardToPlayerMinionList(GameCard card) {
     if (game.currentStage == GameStage.recruitingPlayer1) {
       p1Minions.add(card);
+      print("Added card to player 1's minions: ${card.name}");
     } else if (game.currentStage == GameStage.recruitingPlayer2) {
       p2Minions.add(card);
+      print("Added card to player 2's minions: ${card.name}");
     }
   }
 
-  void initializeCombatPhase() {
+  Future<void> initializeCombatPhase() async {
     // Setup for the combat phase.
-    clearCards();
-    // Prepare the board for auto-battle.
+    // Create and add the combat phase text
+    final combatText = TextComponent(
+      text: 'Combat Phase',
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          fontSize: 26.0,
+          color: Colors.red,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    )
+      ..position =
+          Vector2(playAreaSize.x / 2, playAreaSize.y / 2) // Center of screen
+      ..anchor = Anchor.center; // Center the text around its position
+
+    add(combatText);
+
+    // Remove the text after 2 seconds
+    await Future.delayed(const Duration(seconds: 2), () {
+      combatText.removeFromParent();
+    });
+    // TODO Implement auto-battle.
   }
+
+  Future<void> endCombatPhase() async {}
 
   void simulateCombat() {
     // Perform combat logic, modify player health.
     game.player1Health -= 10; // Example damage.
+    print('Player 1 health: ${game.player1Health}');
     game.player2Health -= 8; // Example damage.
+    print('Player 2 health: ${game.player2Health}');
   }
 
   void clearCards() {
     // Clear any card components from the board.
-    removeAll(children.whereType<GameCard>());
+    // removeAll(children.whereType<GameCard>());
+    // removeAll(cardsPool);
+
+    // Remove cards from top holders
+    for (var holder in topCardHolders) {
+      if (holder.heldCard != null) {
+        holder.heldCard!.removeFromParent();
+        holder.heldCard = null;
+      }
+    }
+
+    // Remove cards from bottom holders
+    for (var holder in bottomCardHolders) {
+      if (holder.heldCard != null) {
+        holder.heldCard!.removeFromParent();
+        holder.heldCard = null;
+      }
+    }
   }
 
   // draw the background image
